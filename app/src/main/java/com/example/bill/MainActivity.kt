@@ -1,104 +1,92 @@
 package com.example.bill
 
+
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import java.text.NumberFormat
-import kotlin.math.ceil
-
+import androidx.compose.ui.unit.sp
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
-            TipCalculatorApp()
+            MaterialTheme {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    HeroList()
+                }
+            }
+        }
+    }
+}
+
+data class Hero(
+    val name: String,
+    val description: String
+)
+
+val heroes = listOf(
+    Hero("Superman", "Man of Steel with super strength."),
+    Hero("Batman", "Dark Knight of Gotham."),
+    Hero("Wonder Woman", "Amazon warrior princess."),
+    Hero("Flash", "Fastest man alive."),
+    Hero("Aquaman", "King of Atlantis.")
+)
+
+@Composable
+fun HeroList() {
+    LazyColumn(
+        modifier = Modifier.padding(16.dp)
+    ) {
+        items(heroes) { hero ->
+            HeroCard(hero)
         }
     }
 }
 
 @Composable
-fun TipCalculatorApp() {
+fun HeroCard(hero: Hero) {
 
-    var amountInput by remember { mutableStateOf("") }
-    var tipInput by remember { mutableStateOf("") }
-    var roundUp by remember { mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(false) }
 
-    val amount = amountInput.toDoubleOrNull() ?: 0.0
-    val tipPercent = tipInput.toDoubleOrNull() ?: 0.0
-
-    val tip = calculateTip(amount, tipPercent, roundUp)
-
-    Column(
+    Card(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp),
-        verticalArrangement = Arrangement.Center
+            .padding(8.dp)
+            .fillMaxWidth()
+            .clickable { expanded = !expanded }
+            .animateContentSize(),
+        elevation = CardDefaults.cardElevation(4.dp)
     ) {
 
-        Text(
-            text = "Tip Calculator",
-            style = MaterialTheme.typography.headlineMedium
-        )
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
 
-        Spacer(modifier = Modifier.height(20.dp))
-
-        OutlinedTextField(
-            value = amountInput,
-            onValueChange = { amountInput = it },
-            label = { Text("Bill Amount") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = tipInput,
-            onValueChange = { tipInput = it },
-            label = { Text("Tip %") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Row(verticalAlignment = Alignment.CenterVertically) {
-
-            Text("Round Up Tip")
-
-            Switch(
-                checked = roundUp,
-                onCheckedChange = { roundUp = it }
+            Text(
+                text = hero.name,
+                fontSize = 22.sp,
+                style = MaterialTheme.typography.titleLarge
             )
+
+            if (expanded) {
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = hero.description,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Text(
-            text = "Tip Amount: $tip",
-            style = MaterialTheme.typography.headlineSmall
-        )
     }
-}
-
-fun calculateTip(
-    amount: Double,
-    tipPercent: Double,
-    roundUp: Boolean
-): String {
-
-    var tip = tipPercent / 100 * amount
-
-    if (roundUp) {
-        tip = ceil(tip)
-    }
-
-    return NumberFormat.getCurrencyInstance().format(tip)
 }
