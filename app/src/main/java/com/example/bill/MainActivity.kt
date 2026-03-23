@@ -1,92 +1,133 @@
 package com.example.bill
 
-
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.navigation.compose.*
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContent {
-            MaterialTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    HeroList()
+            CupcakeApp()
+        }
+    }
+}
+
+// ---------------- NAVIGATION ----------------
+
+enum class CupcakeScreen {
+    Start,
+    Flavor,
+    Pickup,
+    Summary
+}
+
+@Composable
+fun CupcakeApp() {
+    val navController = rememberNavController()
+
+    NavHost(
+        navController = navController,
+        startDestination = CupcakeScreen.Start.name
+    ) {
+
+        composable(CupcakeScreen.Start.name) {
+            StartScreen(
+                onNext = {
+                    navController.navigate(CupcakeScreen.Flavor.name)
                 }
-            }
-        }
-    }
-}
-
-data class Hero(
-    val name: String,
-    val description: String
-)
-
-val heroes = listOf(
-    Hero("Superman", "Man of Steel with super strength."),
-    Hero("Batman", "Dark Knight of Gotham."),
-    Hero("Wonder Woman", "Amazon warrior princess."),
-    Hero("Flash", "Fastest man alive."),
-    Hero("Aquaman", "King of Atlantis.")
-)
-
-@Composable
-fun HeroList() {
-    LazyColumn(
-        modifier = Modifier.padding(16.dp)
-    ) {
-        items(heroes) { hero ->
-            HeroCard(hero)
-        }
-    }
-}
-
-@Composable
-fun HeroCard(hero: Hero) {
-
-    var expanded by remember { mutableStateOf(false) }
-
-    Card(
-        modifier = Modifier
-            .padding(8.dp)
-            .fillMaxWidth()
-            .clickable { expanded = !expanded }
-            .animateContentSize(),
-        elevation = CardDefaults.cardElevation(4.dp)
-    ) {
-
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-
-            Text(
-                text = hero.name,
-                fontSize = 22.sp,
-                style = MaterialTheme.typography.titleLarge
             )
+        }
 
-            if (expanded) {
-                Spacer(modifier = Modifier.height(8.dp))
+        composable(CupcakeScreen.Flavor.name) {
+            FlavorScreen(
+                onNext = {
+                    navController.navigate(CupcakeScreen.Pickup.name)
+                }
+            )
+        }
 
-                Text(
-                    text = hero.description,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
+        composable(CupcakeScreen.Pickup.name) {
+            PickupScreen(
+                onNext = {
+                    navController.navigate(CupcakeScreen.Summary.name)
+                }
+            )
+        }
+
+        composable(CupcakeScreen.Summary.name) {
+            SummaryScreen(
+                onCancel = {
+                    navController.popBackStack(
+                        CupcakeScreen.Start.name,
+                        inclusive = false
+                    )
+                }
+            )
+        }
+    }
+}
+
+// ---------------- UI SCREENS ----------------
+
+@Composable
+fun StartScreen(onNext: () -> Unit) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Button(onClick = onNext) {
+            Text("Start Order")
+        }
+    }
+}
+
+@Composable
+fun FlavorScreen(onNext: () -> Unit) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Button(onClick = onNext) {
+            Text("Choose Flavor → Next")
+        }
+    }
+}
+
+@Composable
+fun PickupScreen(onNext: () -> Unit) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Button(onClick = onNext) {
+            Text("Pick Date → Next")
+        }
+    }
+}
+
+@Composable
+fun SummaryScreen(onCancel: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text("Order Summary", style = MaterialTheme.typography.headlineMedium)
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Button(onClick = onCancel) {
+            Text("Cancel Order")
         }
     }
 }
